@@ -1,0 +1,31 @@
+body{
+    display: flex;
+    font-size: 100%;
+    max-width: 1500px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 5%;
+}
+
+.header{
+    background-color: #97e3bd;
+}
+.header_logo{
+    border-radius: 40%;
+}
+
+.header_title{
+    text-align: center;
+    white-space: nowrap;
+}
+
+.header_job{
+    text-align: center;
+    white-space: nowrap;
+}
+
+.content{
+    display: flex;
+    flex-wrap: wrap;
+
+}
