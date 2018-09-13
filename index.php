@@ -6,6 +6,7 @@
  * Time: 00:24 PM
  */
 
+
 $mon_date = date('Y-m-d', strtotime('monday this week'));
 $sun_date = date('Y-m-d', strtotime('sunday this week'));
 
@@ -16,13 +17,32 @@ include('../../../../system_files/inc.php');
 include('include/function.php');
 
 $ip = get_ip();
-$location = file_get_contents("https://ipstack.com/ipstack_api.php?ip=".$ip);
-$location = json_decode($location);
-$country = $location->country_name;
-$region = $location->region_name;
-$city = $location->city;
-$zip = $location->zip;
-$degree = $location->latitude.", ".$location->longitude;
+
+$check_ip = "select * from woe_info where ip = '".$ip."'";
+$result = $mysqli->query($check_ip);
+$row = $result->fetch_array();
+
+if($row['ip'] == ''){
+    $location = file_get_contents("http://api.ipstack.com/".$ip."?access_key=".$access_key);
+    $location = json_decode($location, TRUE);
+}
+else{
+    $location['country_name'] = $row['country'];
+    $location['region_name'] = $row['region'];
+    $location['city'] = $row['city'];
+    $location['zip'] = $row['zip'];
+
+    $d = explode(",", $row['degree']);
+
+    $location['latitude'] = $d[0];
+    $location['longitude'] = $d[1];
+}
+
+$country = $location['country_name'];
+$region = $location['region_name'];
+$city = $location['city'];
+$zip = $location['zip'];
+$degree = $location['latitude'].", ".$location['longitude'];
 $browser = get_browser();
 $os = get_os();
 
@@ -34,6 +54,7 @@ if($ip != "192.168.1.1"){
 }
 
 $name = isset($_REQUEST['name'])?$_REQUEST['name']:'';
+$discord_name = isset($_REQUEST['dis_name'])?$_REQUEST['dis_name']:'';
 $class = isset($_REQUEST['class'])?$_REQUEST['class']:'';
 $wed = isset($_REQUEST['wed'])?$_REQUEST['wed']:'';
 $sat = isset($_REQUEST['sat'])?$_REQUEST['sat']:'';
@@ -42,21 +63,23 @@ $wed = ($wed == true) ? 1:0;
 $sat = ($sat == true) ? 1:0;
 
 if($name != '' || $class != '' || $wed != '' || $sat != ''){
-    $find_ip = "select name from woe_sign_up where name = '".$name."' and insert_time >= '".$mon_date."' and insert_time <= '".$sun_date."'";
+    $find_ip = "select ip from woe_sign_up where ip = '".$ip."' and insert_time >= '".$mon_date."' and insert_time <= '".$sun_date."'";
     $result = $mysqli->query($find_ip);
     $row = $result->fetch_array();
 
-    if($row['name'] == ''){
-        $sql = "insert into woe_sign_up (name, class, wed, sat) VALUES (?,?,?,?)";
+    if($row['ip'] == ''){
+        $sql = "insert into woe_sign_up (name, class, wed, sat,ip,discord_name) VALUES (?,?,?,?,?,?)";
         $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param("ssii", $name, $class, $wed, $sat);
+        $stmt->bind_param("ssiiss", $name, $class, $wed, $sat,$ip,$discord_name);
         $stmt->execute();
     }
     else{
-        $sql = "update woe_sign_up set wed = ?, sat = ? where name = ? and insert_time >= ? and insert_time <= ?";
+        $sql = "update woe_sign_up set wed = ?, sat = ?, name = ?, discord_name = ? where ip = ? and insert_time >= ? and insert_time <= ?";
         $stmt = $mysqli->prepare($sql);
-        $stmt->bind_param("sssss", $wed, $sat, $name, $mon_date, $sun_date);
+        $stmt->bind_param("sssssss", $wed, $sat, $name, $discord_name, $ip, $mon_date, $sun_date);
         $stmt->execute();
+
+
     }
 
 }
@@ -92,9 +115,14 @@ if($name != '' || $class != '' || $wed != '' || $sat != ''){
         <main>
             <section class="content">
                 <form class="sign_up_form" method="post">
-                    <section class="name">
-                        <h4>Name:</h4>
+                    <section class="char_name">
+                        <h4>Character Name:</h4>
                         <input name="name">
+                    </section>
+
+                    <section class="discord_name">
+                        <h4>Discord Name:</h4>
+                        <input name="dis_name">
                     </section>
 
                     <section class="class">
