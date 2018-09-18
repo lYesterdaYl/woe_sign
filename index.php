@@ -10,8 +10,8 @@
 $mon_date = date('Y-m-d', strtotime('monday this week'));
 $sun_date = date('Y-m-d', strtotime('sunday this week'));
 
-$sat_date = date('Y-m-d', strtotime('wednesday this week'));
-$wed_date = date('Y-m-d', strtotime('saturday this week'));
+$wed_date = date('Y-m-d', strtotime('wednesday this week'));
+$sat_date = date('Y-m-d', strtotime('saturday this week'));
 
 include('../../../../system_files/inc.php');
 include('include/function.php');
